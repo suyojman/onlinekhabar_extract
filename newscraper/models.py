@@ -4,6 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     Integer, String, Date, DateTime, Float, Boolean, Text)
 from scrapy.utils.project import get_project_settings
+import datetime
+
 
 Base = declarative_base()
 
@@ -32,3 +34,4 @@ class News(Base):
     published_date = Column('published_date', Text())
     link = Column('links', Text())
     details = Column('details', Text())
+    created_at = Column('created_at', DateTime(), default=datetime.datetime.now)

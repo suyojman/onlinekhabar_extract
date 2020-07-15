@@ -8,8 +8,16 @@ class QuoteSpider(scrapy.Spider):
     name = 'onlinekhabar'
     start_urls = ['https://www.onlinekhabar.com/content/news']
     close_manually = False
+    skip_on_title_match = True
+    stop_on_title_match = True
+    page_number_limit = '3'
 
     def parse(self, response):
+        # news_sections={
+        #     'main':'//a[contains(@class, "title__regular")]',
+        #     'secondary:'//a[contains(@class, "title__regular")]'
+        # }
+        
         links = response.xpath('//a[contains(@class, "title__regular")]')
         current_page = int(response.xpath('//span[contains(@class, "page-numbers current")]').css('span::text').get())
         for news in links:
@@ -20,14 +28,15 @@ class QuoteSpider(scrapy.Spider):
                     'link' : news_link}
             news_item['title'] = news_title
             news_item['link'] = news_link
-            if self.close_manually:
-                raise CloseSpider("Dublicate News")
             yield response.follow(news_link,self.parse_details, meta={'news_item':news_item})
             
-           
-            
         next_page = str(current_page + 1)
-        if next_page is not None:
+        if self.close_manually:
+            yield scrapy.Request(news_link, callback=self.close_spider)
+            # raise CloseSpider("Duplicate News")
+        elif next_page==self.page_number_limit:
+            yield scrapy.Request(news_link, callback=self.close_spider)
+        elif next_page is not None:
             next_page_link = 'https://www.onlinekhabar.com/content/news/page/' + next_page
             yield scrapy.Request(next_page_link, callback=self.parse)
 
@@ -42,6 +51,10 @@ class QuoteSpider(scrapy.Spider):
         data = {'date_published':published_date,
                 'news_details':news_details}
         yield news_item
+
+    def close_spider(self,response):
+        return None
+        # raise CloseSpider("Page Number limit reached")
 
        
             
