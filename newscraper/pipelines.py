@@ -55,6 +55,7 @@ class DuplicatesPipeline(object):
         session = self.Session()
         exist_title = session.query(News).filter_by(title = item['title']).first()
         if exist_title is not None:
+            print('>>>>>>>', exist_title.id, exist_title.title)
             self.close_spider(spider)
             raise DropItem("Dublicate item found: %s" %item['title'])
             
